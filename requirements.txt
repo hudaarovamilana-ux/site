@@ -1,0 +1,14 @@
+# Railway / local
+fastapi>=0.115,<1
+uvicorn[standard]>=0.34,<1
+pydantic[email]>=2.10,<3
+
+# Bot dependencies
+aiogram>=3.17,<4
+aiohttp>=3.11,<4
+flask>=3.0,<4
+
+# Auth & DB (следующий этап)
+# psycopg2-binary>=2.9,<3
+# passlib[bcrypt]>=1.7,<2
+# python-jose[cryptography]>=3.3,<4

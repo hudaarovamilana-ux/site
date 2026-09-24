@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #faf8f5;
+  --color-beige: #f0ebe4;
+  --color-beige-dark: #e8dfd6;
+  --color-blush: #f5e6e8;
+  --color-rose: #e8c4cb;
+  --color-rose-pale: #f9ecef;
+  --color-rose-muted: #d4a5ae;
+  --color-ink: #1a1a1a;
+  --color-ink-soft: #4a4a4a;
+  --color-ink-muted: #8a8a8a;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-cream text-ink antialiased;
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    @apply bg-rose-pale text-ink;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/60 backdrop-blur-xl border border-white/80;
+  }
+
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-2xl border border-beige-dark/50 shadow-[0_8px_40px_rgba(232,196,203,0.12)];
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .blur-text-soft {
+    filter: blur(4px);
+    user-select: none;
+  }
+
+  .blur-text-soft-start {
+    mask-image: linear-gradient(to right, black 0%, black 22%, transparent 48%);
+  }
+
+  .blur-text-soft-mid {
+    mask-image: linear-gradient(to right, transparent 18%, black 38%, black 58%, transparent 78%);
+  }
+
+  .blur-text-soft-end {
+    mask-image: linear-gradient(to right, transparent 52%, black 72%, black 100%);
+  }
+
+  .hero-gradient {
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 40%, rgba(245, 230, 232, 0.8) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 20%, rgba(240, 235, 228, 0.9) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 60% 80%, rgba(249, 236, 239, 0.6) 0%, transparent 50%),
+      var(--color-cream);
+  }
+}
