@@ -39,8 +39,9 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/start.sh ./start.sh
 
 USER nextjs
 EXPOSE 3000
 
-CMD ["sh", "-c", "node node_modules/prisma/build/index.js db push --skip-generate && node server.js"]
+CMD ["sh", "./start.sh"]
