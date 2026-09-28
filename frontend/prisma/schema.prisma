@@ -20,3 +20,18 @@ model User {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
+
+model EmailVerification {
+  email           String   @id
+  codeHash        String
+  name            String
+  expiresAt       DateTime
+  attempts        Int      @default(0)
+  lastSentAt      DateTime
+  sendCount       Int      @default(1)
+  sendWindowStart DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([expiresAt])
+}

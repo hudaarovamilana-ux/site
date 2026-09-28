@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = verifyCode(email, code);
+    const result = await verifyCode(email, code);
     if (!result.ok) {
       return NextResponse.json({ error: result.reason }, { status: 400 });
     }

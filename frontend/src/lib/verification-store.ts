@@ -1,21 +1,11 @@
 import { createHash, randomInt } from "crypto";
+import { prisma } from "@/lib/db";
 
 const CODE_TTL_MS = 10 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 60 * 1000;
 const MAX_SENDS_PER_HOUR = 5;
 const MAX_VERIFY_ATTEMPTS = 5;
-
-interface PendingVerification {
-  codeHash: string;
-  name: string;
-  expiresAt: number;
-  attempts: number;
-  lastSentAt: number;
-  sendCount: number;
-  sendWindowStart: number;
-}
-
-const pending = new Map<string, PendingVerification>();
+const SEND_WINDOW_MS = 60 * 60 * 1000;
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -29,13 +19,15 @@ export function generateVerificationCode(): string {
   return String(randomInt(100000, 999999));
 }
 
-export function canSendCode(email: string): { ok: true } | { ok: false; reason: string; retryAfterSec?: number } {
+export async function canSendCode(
+  email: string
+): Promise<{ ok: true } | { ok: false; reason: string; retryAfterSec?: number }> {
   const key = normalizeEmail(email);
-  const existing = pending.get(key);
+  const existing = await prisma.emailVerification.findUnique({ where: { email: key } });
   if (!existing) return { ok: true };
 
   const now = Date.now();
-  const sinceLast = now - existing.lastSentAt;
+  const sinceLast = now - existing.lastSentAt.getTime();
   if (sinceLast < RESEND_COOLDOWN_MS) {
     return {
       ok: false,
@@ -44,7 +36,7 @@ export function canSendCode(email: string): { ok: true } | { ok: false; reason: 
     };
   }
 
-  if (now - existing.sendWindowStart > 60 * 60 * 1000) {
+  if (now - existing.sendWindowStart.getTime() > SEND_WINDOW_MS) {
     return { ok: true };
   }
 
@@ -55,54 +47,66 @@ export function canSendCode(email: string): { ok: true } | { ok: false; reason: 
   return { ok: true };
 }
 
-export function saveVerificationCode(email: string, name: string, code: string): void {
+export async function saveVerificationCode(email: string, name: string, code: string): Promise<void> {
   const key = normalizeEmail(email);
-  const now = Date.now();
-  const existing = pending.get(key);
-  const sameWindow = existing && now - existing.sendWindowStart <= 60 * 60 * 1000;
+  const now = new Date();
+  const existing = await prisma.emailVerification.findUnique({ where: { email: key } });
+  const sameWindow =
+    existing && now.getTime() - existing.sendWindowStart.getTime() <= SEND_WINDOW_MS;
 
-  pending.set(key, {
-    codeHash: hashCode(key, code),
-    name: name.trim(),
-    expiresAt: now + CODE_TTL_MS,
-    attempts: 0,
-    lastSentAt: now,
-    sendCount: sameWindow ? (existing?.sendCount ?? 0) + 1 : 1,
-    sendWindowStart: sameWindow ? (existing?.sendWindowStart ?? now) : now,
+  await prisma.emailVerification.upsert({
+    where: { email: key },
+    create: {
+      email: key,
+      codeHash: hashCode(key, code),
+      name: name.trim(),
+      expiresAt: new Date(now.getTime() + CODE_TTL_MS),
+      attempts: 0,
+      lastSentAt: now,
+      sendCount: 1,
+      sendWindowStart: now,
+    },
+    update: {
+      codeHash: hashCode(key, code),
+      name: name.trim(),
+      expiresAt: new Date(now.getTime() + CODE_TTL_MS),
+      attempts: 0,
+      lastSentAt: now,
+      sendCount: sameWindow ? (existing?.sendCount ?? 0) + 1 : 1,
+      sendWindowStart: sameWindow ? existing.sendWindowStart : now,
+    },
   });
 }
 
-export function verifyCode(
+export async function verifyCode(
   email: string,
   code: string
-): { ok: true; name: string } | { ok: false; reason: string } {
+): Promise<{ ok: true; name: string } | { ok: false; reason: string }> {
   const key = normalizeEmail(email);
-  const entry = pending.get(key);
+  const entry = await prisma.emailVerification.findUnique({ where: { email: key } });
 
   if (!entry) {
     return { ok: false, reason: "Код не найден. Запросите новый." };
   }
 
-  if (Date.now() > entry.expiresAt) {
-    pending.delete(key);
+  if (Date.now() > entry.expiresAt.getTime()) {
+    await prisma.emailVerification.deleteMany({ where: { email: key } });
     return { ok: false, reason: "Код истёк. Запросите новый." };
   }
 
   if (entry.attempts >= MAX_VERIFY_ATTEMPTS) {
-    pending.delete(key);
+    await prisma.emailVerification.deleteMany({ where: { email: key } });
     return { ok: false, reason: "Превышено число попыток. Запросите новый код." };
   }
 
-  entry.attempts += 1;
-
   if (hashCode(key, code.trim()) !== entry.codeHash) {
+    await prisma.emailVerification.update({
+      where: { email: key },
+      data: { attempts: { increment: 1 } },
+    });
     return { ok: false, reason: "Неверный код. Проверьте письмо и попробуйте снова." };
   }
 
-  pending.delete(key);
+  await prisma.emailVerification.delete({ where: { email: key } });
   return { ok: true, name: entry.name };
-}
-
-export function getPendingName(email: string): string | null {
-  return pending.get(normalizeEmail(email))?.name ?? null;
 }

@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const limit = canSendCode(email);
+    const limit = await canSendCode(email);
     if (!limit.ok) {
       return NextResponse.json(
         { error: limit.reason, retryAfterSec: limit.retryAfterSec },
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     }
 
     const code = generateVerificationCode();
-    saveVerificationCode(email, name, code);
+    await saveVerificationCode(email, name, code);
     await sendVerificationEmail(email, code);
 
     return NextResponse.json({
