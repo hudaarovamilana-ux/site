@@ -23,7 +23,7 @@ export async function setSessionCookie(token: string): Promise<void> {
 
 export async function clearSessionCookie(): Promise<void> {
   const jar = await cookies();
-  jar.set(SESSION_COOKIE, "", sessionCookieOptions(0));
+  jar.delete(SESSION_COOKIE);
 }
 
 export async function getSessionFromCookies(): Promise<SessionPayload | null> {
@@ -38,5 +38,7 @@ export function applySessionCookie(res: NextResponse, token: string): void {
 }
 
 export function clearSessionCookieOnResponse(res: NextResponse): void {
-  res.cookies.set(SESSION_COOKIE, "", sessionCookieOptions(0));
+  const opts = sessionCookieOptions(0);
+  res.cookies.set(SESSION_COOKIE, "", { ...opts, expires: new Date(0) });
+  res.cookies.delete({ name: SESSION_COOKIE, ...opts });
 }

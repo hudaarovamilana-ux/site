@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Menu, X } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { fetchAndHydrateProfile } from "@/lib/profile-sync";
@@ -20,6 +21,11 @@ export function Header() {
   const isLanding = pathname === "/";
   const [loggedIn, setLoggedIn] = useState(false);
   const [name, setName] = useState("");
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     const onAuthChange = () => {
@@ -70,7 +76,16 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
+          <button
+            type="button"
+            className="md:hidden inline-flex items-center justify-center rounded-lg p-2 text-ink-muted hover:text-ink hover:bg-beige-dark/20 transition-colors"
+            aria-expanded={mobileOpen}
+            aria-label={mobileOpen ? "Закрыть меню" : "Открыть меню"}
+            onClick={() => setMobileOpen((open) => !open)}
+          >
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
           {loggedIn ? (
             <>
               {name && (
@@ -102,6 +117,33 @@ export function Header() {
           )}
         </div>
       </div>
+
+      {mobileOpen && (
+        <nav
+          className="md:hidden border-t border-beige-dark/40 bg-cream/95 backdrop-blur-md px-6 py-4 space-y-1"
+          aria-label="Мобильная навигация"
+        >
+          {nav.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`block py-3 text-sm uppercase tracking-[0.12em] border-b border-beige-dark/20 last:border-0 ${
+                pathname === item.href ? "text-ink font-medium" : "text-ink-muted"
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+          {!loggedIn && (
+            <Link
+              href="/login"
+              className="block py-3 text-sm uppercase tracking-[0.12em] text-ink-muted border-b border-beige-dark/20"
+            >
+              Войти
+            </Link>
+          )}
+        </nav>
+      )}
     </header>
   );
 }

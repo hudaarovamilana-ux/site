@@ -18,22 +18,40 @@ export function AskForm({ initialQuestion = "" }: AskFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
     if (initialQuestion) setQuestion(initialQuestion);
   }, [initialQuestion]);
 
   useEffect(() => {
-    fetch("/api/ai-usage")
+    fetch("/api/auth/me", { credentials: "include" })
+      .then(async (res) => {
+        if (!res.ok) {
+          setAuthenticated(false);
+          return;
+        }
+        const data = (await res.json()) as { authenticated?: boolean };
+        setAuthenticated(Boolean(data.authenticated));
+      })
+      .catch(() => setAuthenticated(false))
+      .finally(() => setAuthChecked(true));
+  }, []);
+
+  useEffect(() => {
+    if (!authenticated) return;
+    fetch("/api/ai-usage", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => setRemaining(data.ask?.remaining ?? null))
       .catch(() => setRemaining(null));
-  }, []);
+  }, [authenticated]);
 
-  const limitReached = remaining === 0;
+  const limitReached = authenticated && remaining === 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!authenticated) return;
     setLoading(true);
     setError(null);
 
@@ -53,13 +71,47 @@ export function AskForm({ initialQuestion = "" }: AskFormProps) {
     }
   };
 
+  if (authChecked && !authenticated) {
+    return (
+      <div className="max-w-2xl">
+        <h1 className="text-2xl font-medium text-ink mb-2">Задать вопрос</h1>
+        <p className="text-sm text-ink-muted mb-6">
+          Вопросы ИИ доступны после входа в аккаунт — так мы сохраняем лимиты и историю для вас.
+        </p>
+        <div className="glass-card rounded-2xl p-6 mb-6 space-y-4">
+          <p className="text-sm text-ink-soft leading-relaxed">
+            Зарегистрируйтесь или войдите, чтобы задавать вопросы (бесплатно до {AI_LIMITS.ask}{" "}
+            запросов).
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/login?next=/ask"
+              className="rounded-full bg-ink px-8 py-3 text-sm font-medium text-cream hover:bg-ink/90 transition"
+            >
+              Войти
+            </Link>
+            <Link
+              href="/onboarding"
+              className="rounded-full border border-beige-dark px-8 py-3 text-sm font-medium text-ink hover:bg-white/80 transition"
+            >
+              Создать аккаунт
+            </Link>
+          </div>
+        </div>
+        <blockquote className="rounded-2xl border border-rose/20 bg-rose-pale/50 px-5 py-4">
+          <p className="text-sm text-ink-soft leading-relaxed italic">{HEALTH_QUOTE}</p>
+        </blockquote>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl">
       <h1 className="text-2xl font-medium text-ink mb-2">Задать вопрос</h1>
       <p className="text-sm text-ink-muted mb-2">
         Задайте вопрос — ИИ даст ориентир, при необходимости направит к врачу
       </p>
-      {remaining !== null && (
+      {authenticated && remaining !== null && (
         <p className="text-xs text-ink-muted mb-6">
           Бесплатно: {remaining} из {AI_LIMITS.ask} вопросов
         </p>
@@ -72,13 +124,13 @@ export function AskForm({ initialQuestion = "" }: AskFormProps) {
           required
           rows={4}
           placeholder="Опишите ваш вопрос..."
-          disabled={limitReached}
+          disabled={!authChecked || limitReached}
           className="w-full rounded-xl border border-beige-dark bg-white px-4 py-3 text-sm resize-none disabled:opacity-60"
         />
         {error && <p className="text-sm text-rose-700">{error}</p>}
         <button
           type="submit"
-          disabled={loading || !question.trim() || limitReached}
+          disabled={loading || !authChecked || !question.trim() || limitReached}
           className="rounded-full bg-ink px-8 py-3 text-sm font-medium text-cream hover:bg-ink/90 disabled:opacity-50 transition"
         >
           {loading ? "Отправляем..." : limitReached ? "Лимит исчерпан" : "Отправить"}

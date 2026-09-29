@@ -1,6 +1,7 @@
 "use client";
 
 import { LogOut } from "lucide-react";
+import { bumpAuthGeneration } from "@/lib/auth-client";
 import { logoutUser } from "@/lib/user-storage";
 
 interface LogoutButtonProps {
@@ -10,13 +11,21 @@ interface LogoutButtonProps {
 
 export function LogoutButton({ className = "", showIcon = true }: LogoutButtonProps) {
   const handleLogout = async () => {
+    bumpAuthGeneration();
     try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+      const res = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        console.warn("[logout] server responded", res.status);
+      }
     } catch {
       /* ignore network errors — local logout still clears UI */
     }
     logoutUser();
-    window.location.href = "/";
+    window.location.replace("/");
   };
 
   return (
