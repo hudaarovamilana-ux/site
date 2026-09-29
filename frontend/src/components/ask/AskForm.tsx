@@ -80,8 +80,7 @@ export function AskForm({ initialQuestion = "" }: AskFormProps) {
         </p>
         <div className="glass-card rounded-2xl p-6 mb-6 space-y-4">
           <p className="text-sm text-ink-soft leading-relaxed">
-            Зарегистрируйтесь или войдите, чтобы задавать вопросы (бесплатно до {AI_LIMITS.ask}{" "}
-            запросов).
+            Зарегистрируйтесь или войдите, чтобы задавать вопросы.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
