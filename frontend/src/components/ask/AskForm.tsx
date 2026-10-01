@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AI_LIMITS } from "@/lib/ai-limits";
 import { postJson } from "@/lib/api-client";
 import { GuestAskGate } from "@/components/ask/GuestAskGate";
 
@@ -85,14 +84,9 @@ export function AskForm({ initialQuestion = "" }: AskFormProps) {
   return (
     <div className="max-w-2xl">
       <h1 className="text-2xl font-medium text-ink mb-2">Задать вопрос</h1>
-      <p className="text-sm text-ink-muted mb-2">
+      <p className="text-sm text-ink-muted mb-6">
         Задайте вопрос — ИИ даст ориентир, при необходимости направит к врачу
       </p>
-      {remaining !== null && (
-        <p className="text-xs text-ink-muted mb-6">
-          Осталось запросов: {remaining} из {AI_LIMITS.ask}
-        </p>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-4 mb-6">
         <textarea
