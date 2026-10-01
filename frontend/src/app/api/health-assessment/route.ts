@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateHealthAssessment } from "@/lib/deepseek";
 import { buildHealthProfileSummary } from "@/lib/health-profile-summary";
-import {
-  checkHealthLimit,
-  markHealthUsed,
-} from "@/lib/ai-limit-server";
+import { releaseHealth, reserveHealth } from "@/lib/ai-limit-server";
 import { AI_LIMITS, remainingFromCount } from "@/lib/ai-limits";
 import type { OnboardingData, HealthProfile } from "@/lib/profile-types";
 import type { UserStatus } from "@/lib/types";
@@ -27,9 +24,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const limit = await checkHealthLimit();
-    if (!limit.ok) return limit.response;
-
     const body = (await request.json()) as {
       status?: UserStatus;
       profile?: HealthProfile;
@@ -47,14 +41,19 @@ export async function POST(request: Request) {
       onboarding: body.onboarding ?? null,
     });
 
-    const assessment = await generateHealthAssessment(summary);
+    const limit = await reserveHealth(session.userId);
+    if (!limit.ok) return limit.response;
 
-    const res = NextResponse.json({
-      assessment,
-      remaining: remainingFromCount(1, AI_LIMITS.healthAssessment),
-    });
-
-    return markHealthUsed(res);
+    try {
+      const assessment = await generateHealthAssessment(summary);
+      return NextResponse.json({
+        assessment,
+        remaining: remainingFromCount(1, AI_LIMITS.healthAssessment),
+      });
+    } catch (error) {
+      await releaseHealth(session.userId);
+      throw error;
+    }
   } catch (error) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateAskAnswer } from "@/lib/deepseek";
-import { checkAskLimit, incrementAskCount } from "@/lib/ai-limit-server";
+import { releaseAsk, reserveAsk } from "@/lib/ai-limit-server";
 import { AI_LIMITS, remainingFromCount } from "@/lib/ai-limits";
 import { requireSession, AuthError } from "@/lib/auth";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
@@ -19,9 +19,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const limit = await checkAskLimit();
-    if (!limit.ok) return limit.response;
-
     const body = (await request.json()) as { question?: string };
     const question = body.question?.trim();
 
@@ -33,11 +30,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Вопрос слишком длинный" }, { status: 400 });
     }
 
-    const answer = await generateAskAnswer(question);
-    const remaining = remainingFromCount(limit.used + 1, AI_LIMITS.ask);
+    const limit = await reserveAsk(session.userId);
+    if (!limit.ok) return limit.response;
 
-    const res = NextResponse.json({ answer, remaining });
-    return incrementAskCount(res, limit.used);
+    try {
+      const answer = await generateAskAnswer(question);
+      const remaining = remainingFromCount(limit.used, AI_LIMITS.ask);
+      return NextResponse.json({ answer, remaining });
+    } catch (error) {
+      await releaseAsk(session.userId);
+      throw error;
+    }
   } catch (error) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });

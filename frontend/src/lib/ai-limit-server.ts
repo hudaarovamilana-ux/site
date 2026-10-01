@@ -1,105 +1,104 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { AI_COOKIE, AI_LIMITS } from "@/lib/ai-limits";
+import { prisma } from "@/lib/db";
+import { AI_LIMITS } from "@/lib/ai-limits";
 
-const ONE_YEAR = 60 * 60 * 24 * 365;
-
-function parseCount(value: string | undefined): number {
-  const n = parseInt(value ?? "0", 10);
-  return Number.isNaN(n) ? 0 : n;
+function limitResponse(error: string) {
+  return NextResponse.json({ error, remaining: 0 }, { status: 429 });
 }
 
-function cookieOpts() {
-  return {
-    httpOnly: true,
-    sameSite: "lax" as const,
-    maxAge: ONE_YEAR,
-    path: "/",
-  };
-}
-
-export async function checkHealthLimit(): Promise<{ ok: true } | { ok: false; response: NextResponse }> {
-  const store = await cookies();
-  if (store.get(AI_COOKIE.healthUsed)?.value === "1") {
+export async function reserveAsk(
+  userId: string
+): Promise<{ ok: true; used: number } | { ok: false; response: NextResponse }> {
+  const updated = await prisma.user.updateMany({
+    where: { id: userId, aiAskUsed: { lt: AI_LIMITS.ask } },
+    data: { aiAskUsed: { increment: 1 } },
+  });
+  if (updated.count === 0) {
     return {
       ok: false,
-      response: NextResponse.json(
-        {
-          error: `Бесплатная оценка уже использована (лимит: ${AI_LIMITS.healthAssessment} раз). Оформите подписку для повторной оценки.`,
-        },
-        { status: 429 }
+      response: limitResponse(
+        `Достигнут лимит вопросов (${AI_LIMITS.ask}). Оформите подписку для большего числа запросов.`
+      ),
+    };
+  }
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { aiAskUsed: true },
+  });
+  return { ok: true, used: user?.aiAskUsed ?? 1 };
+}
+
+export async function releaseAsk(userId: string): Promise<void> {
+  await prisma.user.updateMany({
+    where: { id: userId, aiAskUsed: { gt: 0 } },
+    data: { aiAskUsed: { decrement: 1 } },
+  });
+}
+
+export async function reserveTrust(
+  userId: string
+): Promise<{ ok: true; used: number } | { ok: false; response: NextResponse }> {
+  const updated = await prisma.user.updateMany({
+    where: { id: userId, aiTrustUsed: { lt: AI_LIMITS.trustChat } },
+    data: { aiTrustUsed: { increment: 1 } },
+  });
+  if (updated.count === 0) {
+    return {
+      ok: false,
+      response: limitResponse(`Достигнут лимит сообщений в чате доверия (${AI_LIMITS.trustChat}).`),
+    };
+  }
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { aiTrustUsed: true },
+  });
+  return { ok: true, used: user?.aiTrustUsed ?? 1 };
+}
+
+export async function releaseTrust(userId: string): Promise<void> {
+  await prisma.user.updateMany({
+    where: { id: userId, aiTrustUsed: { gt: 0 } },
+    data: { aiTrustUsed: { decrement: 1 } },
+  });
+}
+
+export async function reserveHealth(
+  userId: string
+): Promise<{ ok: true } | { ok: false; response: NextResponse }> {
+  const updated = await prisma.user.updateMany({
+    where: { id: userId, aiHealthUsed: false },
+    data: { aiHealthUsed: true },
+  });
+  if (updated.count === 0) {
+    return {
+      ok: false,
+      response: limitResponse(
+        `Бесплатная оценка уже использована (лимит: ${AI_LIMITS.healthAssessment} раз). Оформите подписку для повторной оценки.`
       ),
     };
   }
   return { ok: true };
 }
 
-export function markHealthUsed(response: NextResponse): NextResponse {
-  response.cookies.set(AI_COOKIE.healthUsed, "1", cookieOpts());
-  return response;
+export async function releaseHealth(userId: string): Promise<void> {
+  await prisma.user.updateMany({
+    where: { id: userId, aiHealthUsed: true },
+    data: { aiHealthUsed: false },
+  });
 }
 
-export async function checkAskLimit(): Promise<
-  { ok: true; used: number } | { ok: false; response: NextResponse }
-> {
-  const store = await cookies();
-  const used = parseCount(store.get(AI_COOKIE.askCount)?.value);
-  if (used >= AI_LIMITS.ask) {
-    return {
-      ok: false,
-      response: NextResponse.json(
-        {
-          error: `Достигнут лимит вопросов (${AI_LIMITS.ask}). Оформите подписку для большего числа запросов.`,
-          remaining: 0,
-        },
-        { status: 429 }
-      ),
-    };
-  }
-  return { ok: true, used };
-}
-
-export function incrementAskCount(response: NextResponse, used: number): NextResponse {
-  const next = used + 1;
-  response.cookies.set(AI_COOKIE.askCount, String(next), cookieOpts());
-  return response;
-}
-
-export async function checkTrustLimit(): Promise<
-  { ok: true; used: number } | { ok: false; response: NextResponse }
-> {
-  const store = await cookies();
-  const used = parseCount(store.get(AI_COOKIE.trustCount)?.value);
-  if (used >= AI_LIMITS.trustChat) {
-    return {
-      ok: false,
-      response: NextResponse.json(
-        {
-          error: `Достигнут лимит сообщений в чате доверия (${AI_LIMITS.trustChat}).`,
-          remaining: 0,
-        },
-        { status: 429 }
-      ),
-    };
-  }
-  return { ok: true, used };
-}
-
-export function incrementTrustCount(response: NextResponse, used: number): NextResponse {
-  const next = used + 1;
-  response.cookies.set(AI_COOKIE.trustCount, String(next), cookieOpts());
-  return response;
-}
-
-export async function getAiUsageCounts(): Promise<{
+export async function getAiUsageCounts(userId: string): Promise<{
   healthUsed: boolean;
   askUsed: number;
   trustUsed: number;
 }> {
-  const store = await cookies();
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { aiAskUsed: true, aiTrustUsed: true, aiHealthUsed: true },
+  });
   return {
-    healthUsed: store.get(AI_COOKIE.healthUsed)?.value === "1",
-    askUsed: parseCount(store.get(AI_COOKIE.askCount)?.value),
-    trustUsed: parseCount(store.get(AI_COOKIE.trustCount)?.value),
+    healthUsed: user?.aiHealthUsed ?? false,
+    askUsed: user?.aiAskUsed ?? 0,
+    trustUsed: user?.aiTrustUsed ?? 0,
   };
 }
