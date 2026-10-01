@@ -1,23 +1,14 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { AskForm } from "@/components/ask/AskForm";
+import { AskPageClient } from "@/components/ask/AskPageClient";
+import { GuestAskGate } from "@/components/ask/GuestAskGate";
 import { FlowerDecor } from "@/components/landing/FlowerDecor";
+import { getSessionFromCookies } from "@/lib/session";
 
-const DRAFT_KEY = "contraception_ask_draft";
+export const dynamic = "force-dynamic";
 
-export default function AskPage() {
-  const [initialQuestion, setInitialQuestion] = useState("");
-
-  useEffect(() => {
-    const draft = sessionStorage.getItem(DRAFT_KEY);
-    if (draft) {
-      setInitialQuestion(draft);
-      sessionStorage.removeItem(DRAFT_KEY);
-    }
-  }, []);
+export default async function AskPage() {
+  const session = await getSessionFromCookies();
 
   return (
     <div className="hero-gradient min-h-[85vh] relative overflow-hidden">
@@ -34,7 +25,7 @@ export default function AskPage() {
           На главную
         </Link>
 
-        <AskForm initialQuestion={initialQuestion} />
+        {session ? <AskPageClient /> : <GuestAskGate />}
       </div>
     </div>
   );

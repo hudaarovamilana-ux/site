@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AI_LIMITS } from "@/lib/ai-limits";
 import { postJson } from "@/lib/api-client";
-
-const HEALTH_QUOTE =
-  "Помните: не бывает глупых вопросов о здоровье. Бывают ситуации, которых можно было бы избежать, если бы вопрос был задан вовремя.";
+import { GuestAskGate } from "@/components/ask/GuestAskGate";
 
 interface AskFormProps {
   initialQuestion?: string;
@@ -26,7 +24,7 @@ export function AskForm({ initialQuestion = "" }: AskFormProps) {
   }, [initialQuestion]);
 
   useEffect(() => {
-    fetch("/api/auth/me", { credentials: "include" })
+    fetch("/api/auth/me", { credentials: "include", cache: "no-store" })
       .then(async (res) => {
         if (!res.ok) {
           setAuthenticated(false);
@@ -41,7 +39,7 @@ export function AskForm({ initialQuestion = "" }: AskFormProps) {
 
   useEffect(() => {
     if (!authenticated) return;
-    fetch("/api/ai-usage", { credentials: "include" })
+    fetch("/api/ai-usage", { credentials: "include", cache: "no-store" })
       .then((r) => r.json())
       .then((data) => setRemaining(data.ask?.remaining ?? null))
       .catch(() => setRemaining(null));
@@ -71,37 +69,17 @@ export function AskForm({ initialQuestion = "" }: AskFormProps) {
     }
   };
 
-  if (authChecked && !authenticated) {
+  if (!authChecked) {
     return (
       <div className="max-w-2xl">
         <h1 className="text-2xl font-medium text-ink mb-2">Задать вопрос</h1>
-        <p className="text-sm text-ink-muted mb-6">
-          Вопросы ИИ доступны после входа в аккаунт — так мы сохраняем лимиты и историю для вас.
-        </p>
-        <div className="glass-card rounded-2xl p-6 mb-6 space-y-4">
-          <p className="text-sm text-ink-soft leading-relaxed">
-            Зарегистрируйтесь или войдите, чтобы задавать вопросы.
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/login?next=/ask"
-              className="rounded-full bg-ink px-8 py-3 text-sm font-medium text-cream hover:bg-ink/90 transition"
-            >
-              Войти
-            </Link>
-            <Link
-              href="/onboarding"
-              className="rounded-full border border-beige-dark px-8 py-3 text-sm font-medium text-ink hover:bg-white/80 transition"
-            >
-              Создать аккаунт
-            </Link>
-          </div>
-        </div>
-        <blockquote className="rounded-2xl border border-rose/20 bg-rose-pale/50 px-5 py-4">
-          <p className="text-sm text-ink-soft leading-relaxed italic">{HEALTH_QUOTE}</p>
-        </blockquote>
+        <p className="text-sm text-ink-muted">Проверяем вход…</p>
       </div>
     );
+  }
+
+  if (!authenticated) {
+    return <GuestAskGate />;
   }
 
   return (
@@ -110,9 +88,9 @@ export function AskForm({ initialQuestion = "" }: AskFormProps) {
       <p className="text-sm text-ink-muted mb-2">
         Задайте вопрос — ИИ даст ориентир, при необходимости направит к врачу
       </p>
-      {authenticated && remaining !== null && (
+      {remaining !== null && (
         <p className="text-xs text-ink-muted mb-6">
-          Бесплатно: {remaining} из {AI_LIMITS.ask} вопросов
+          Осталось запросов: {remaining} из {AI_LIMITS.ask}
         </p>
       )}
 
@@ -123,13 +101,13 @@ export function AskForm({ initialQuestion = "" }: AskFormProps) {
           required
           rows={4}
           placeholder="Опишите ваш вопрос..."
-          disabled={!authChecked || limitReached}
+          disabled={limitReached}
           className="w-full rounded-xl border border-beige-dark bg-white px-4 py-3 text-sm resize-none disabled:opacity-60"
         />
         {error && <p className="text-sm text-rose-700">{error}</p>}
         <button
           type="submit"
-          disabled={loading || !authChecked || !question.trim() || limitReached}
+          disabled={loading || !question.trim() || limitReached}
           className="rounded-full bg-ink px-8 py-3 text-sm font-medium text-cream hover:bg-ink/90 disabled:opacity-50 transition"
         >
           {loading ? "Отправляем..." : limitReached ? "Лимит исчерпан" : "Отправить"}
@@ -155,7 +133,10 @@ export function AskForm({ initialQuestion = "" }: AskFormProps) {
       )}
 
       <blockquote className="rounded-2xl border border-rose/20 bg-rose-pale/50 px-5 py-4">
-        <p className="text-sm text-ink-soft leading-relaxed italic">{HEALTH_QUOTE}</p>
+        <p className="text-sm text-ink-soft leading-relaxed italic">
+          Помните: не бывает глупых вопросов о здоровье. Бывают ситуации, которых можно было бы
+          избежать, если бы вопрос был задан вовремя.
+        </p>
       </blockquote>
     </div>
   );
