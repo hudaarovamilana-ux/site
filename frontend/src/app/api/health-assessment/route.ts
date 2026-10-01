@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   try {
     const session = await requireSession();
     const ip = getClientIp(request);
-    const burst = rateLimit(`health:${session.userId}:${ip}`, 10, 60 * 60 * 1000);
+    const burst = await rateLimit(`health:${session.userId}:${ip}`, 10, 60 * 60 * 1000);
     if (!burst.ok) {
       return NextResponse.json(
         { error: "Слишком много запросов. Попробуйте позже.", retryAfterSec: burst.retryAfterSec },

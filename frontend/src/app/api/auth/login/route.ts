@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request);
-    const limit = rateLimit(`login:${ip}`, 20, 60 * 60 * 1000);
+    const limit = await rateLimit(`login:${ip}`, 20, 60 * 60 * 1000);
     if (!limit.ok) {
       return NextResponse.json(
         {

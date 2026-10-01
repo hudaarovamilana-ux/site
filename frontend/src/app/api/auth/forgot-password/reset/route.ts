@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request);
-    const ipLimit = rateLimit(`reset-password:${ip}`, 20, 60 * 60 * 1000);
+    const ipLimit = await rateLimit(`reset-password:${ip}`, 20, 60 * 60 * 1000);
     if (!ipLimit.ok) {
       return NextResponse.json(
         {

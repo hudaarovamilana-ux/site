@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   try {
     const ip = getClientIp(request);
-    const limit = rateLimit(`verify:${ip}`, 30, 60 * 60 * 1000);
+    const limit = await rateLimit(`verify:${ip}`, 30, 60 * 60 * 1000);
     if (!limit.ok) {
       return NextResponse.json(
         { error: "Слишком много попыток. Попробуйте позже.", retryAfterSec: limit.retryAfterSec },

@@ -1,35 +1,53 @@
+import { prisma } from "@/lib/db";
+
 type RateLimitResult = { ok: true } | { ok: false; retryAfterSec: number };
 
-interface Bucket {
-  count: number;
-  resetAt: number;
-}
-
-const buckets = new Map<string, Bucket>();
-
-/** Простой in-memory лимит. Для продакшена лучше Cloudflare / Redis. */
-export function rateLimit(
+/**
+ * Лимит в PostgreSQL. Счётчик общий для всех процессов и переживает redeploy.
+ * Если база недоступна, запрос не блокируем — иначе вход ляжет вместе с лимитером.
+ */
+export async function rateLimit(
   key: string,
   limit: number,
   windowMs: number
-): RateLimitResult {
-  const now = Date.now();
-  const existing = buckets.get(key);
+): Promise<RateLimitResult> {
+  try {
+    const rows = await prisma.$queryRaw<{ count: number; resetAt: Date }[]>`
+      INSERT INTO "RateLimitBucket" ("key", "count", "resetAt", "updatedAt")
+      VALUES (
+        ${key},
+        1,
+        NOW() + (${windowMs} * INTERVAL '1 millisecond'),
+        NOW()
+      )
+      ON CONFLICT ("key") DO UPDATE SET
+        "count" = CASE
+          WHEN "RateLimitBucket"."resetAt" <= NOW() THEN 1
+          ELSE "RateLimitBucket"."count" + 1
+        END,
+        "resetAt" = CASE
+          WHEN "RateLimitBucket"."resetAt" <= NOW() THEN NOW() + (${windowMs} * INTERVAL '1 millisecond')
+          ELSE "RateLimitBucket"."resetAt"
+        END,
+        "updatedAt" = NOW()
+      WHERE "RateLimitBucket"."resetAt" <= NOW() OR "RateLimitBucket"."count" < ${limit}
+      RETURNING "count", "resetAt"
+    `;
 
-  if (!existing || now >= existing.resetAt) {
-    buckets.set(key, { count: 1, resetAt: now + windowMs });
+    if (rows.length > 0) return { ok: true };
+
+    const existing = await prisma.rateLimitBucket.findUnique({
+      where: { key },
+      select: { resetAt: true },
+    });
+    const retryAfterSec = existing
+      ? Math.max(1, Math.ceil((existing.resetAt.getTime() - Date.now()) / 1000))
+      : 60;
+    return { ok: false, retryAfterSec };
+  } catch (error) {
+    console.error("[rate-limit]", error);
     return { ok: true };
   }
-
-  if (existing.count >= limit) {
-    return {
-      ok: false,
-      retryAfterSec: Math.max(1, Math.ceil((existing.resetAt - now) / 1000)),
-    };
-  }
-
-  existing.count += 1;
-  return { ok: true };
 }
 
 export function getClientIp(request: Request): string {
