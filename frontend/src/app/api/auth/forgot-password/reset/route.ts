@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const verified = verifyResetCode(email, code);
+    const verified = await verifyResetCode(email, code);
     if (!verified.ok) {
       return NextResponse.json({ error: verified.reason }, { status: 400 });
     }

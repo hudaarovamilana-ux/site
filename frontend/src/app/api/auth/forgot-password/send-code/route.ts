@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const limit = canSendResetCode(email);
+    const limit = await canSendResetCode(email);
     if (!limit.ok) {
       return NextResponse.json(
         { error: limit.reason, retryAfterSec: limit.retryAfterSec },
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     const user = await prisma.user.findUnique({ where: { email } });
     if (user) {
       const code = generateResetCode();
-      saveResetCode(email, code);
+      await saveResetCode(email, code);
       await sendPasswordResetEmail(email, code);
     }
 

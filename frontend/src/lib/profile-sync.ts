@@ -8,6 +8,7 @@ import {
 import {
   getUserName,
   getUserStatus,
+  isUserLoggedIn,
   loadHealthProfile,
   loadOnboardingData,
   notifyAuthChange,
@@ -68,9 +69,22 @@ export function applyServerProfile(profile: ServerProfile | null | undefined): v
   notifyAuthChange();
 }
 
+export const PROFILE_SYNC_EVENT = "zk-profile-sync";
+
+export type ProfileSyncResult =
+  | { ok: true }
+  | { ok: false; message: string; anonymous?: boolean };
+
+function notifyProfileSync(result: ProfileSyncResult): ProfileSyncResult {
+  if (typeof window !== "undefined" && !result.ok && !result.anonymous) {
+    window.dispatchEvent(new CustomEvent(PROFILE_SYNC_EVENT, { detail: result }));
+  }
+  return result;
+}
+
 /** Отправляет текущие локальные данные на сервер. */
-export async function pushLocalProfileToServer(): Promise<void> {
-  if (typeof window === "undefined") return;
+export async function pushLocalProfileToServer(): Promise<ProfileSyncResult> {
+  if (typeof window === "undefined") return { ok: true };
 
   const name = getUserName();
   const status = getUserStatus();
@@ -79,10 +93,11 @@ export async function pushLocalProfileToServer(): Promise<void> {
   const checklist = loadAllChecklistProgress();
 
   try {
-    await fetch("/api/profile", {
+    const res = await fetch("/api/profile", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
+      cache: "no-store",
       body: JSON.stringify({
         name: name || undefined,
         status,
@@ -91,8 +106,33 @@ export async function pushLocalProfileToServer(): Promise<void> {
         checklist,
       }),
     });
+
+    if (res.ok) return { ok: true };
+
+    if (res.status === 401 && !isUserLoggedIn()) {
+      return { ok: false, message: "", anonymous: true };
+    }
+
+    let message = "Не удалось сохранить профиль на сервере. Данные остались только на этом устройстве.";
+    if (res.status === 401) {
+      message = "Сессия истекла. Войдите снова, чтобы сохранить данные в аккаунте.";
+    } else {
+      try {
+        const data = (await res.json()) as { error?: string };
+        if (data.error) message = data.error;
+      } catch {
+        /* keep default */
+      }
+    }
+    return notifyProfileSync({ ok: false, message });
   } catch {
-    /* offline — локальные данные останутся */
+    if (!isUserLoggedIn()) {
+      return { ok: false, message: "", anonymous: true };
+    }
+    return notifyProfileSync({
+      ok: false,
+      message: "Нет связи с сервером. Данные остались только на этом устройстве.",
+    });
   }
 }
 

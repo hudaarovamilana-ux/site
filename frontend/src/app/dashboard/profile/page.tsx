@@ -13,6 +13,7 @@ import {
 } from "@/lib/user-storage";
 import { formatDateInput, isValidDateDDMMYYYY } from "@/lib/date-format";
 import { evaluateHealthProfile } from "@/lib/health-evaluation";
+import { pushLocalProfileToServer } from "@/lib/profile-sync";
 import { SoftPinkLogo } from "@/components/ui/Logo";
 import { HealthEvaluationCard } from "@/components/profile/HealthEvaluationCard";
 
@@ -170,13 +171,19 @@ export default function ProfilePage() {
     setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (dateOfBirth && !isValidDateDDMMYYYY(dateOfBirth)) {
       setError("Введите дату рождения в формате ДД.ММ.ГГГГ");
       return;
     }
     setError("");
-    saveHealthProfile(currentProfile);
+    setSaved(false);
+    saveHealthProfile(currentProfile, { sync: false });
+    const result = await pushLocalProfileToServer();
+    if (!result.ok && !result.anonymous) {
+      setError(result.message);
+      return;
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };

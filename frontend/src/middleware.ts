@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { hasValidSessionJwt } from "@/lib/session-jwt-edge";
 
-/** Имя cookie сессии — дублируем строку, чтобы middleware не тянул jose/Prisma. */
 const SESSION_COOKIE = "zk_session";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get(SESSION_COOKIE)?.value;
 
-  // Полная проверка JWT — в Node API (/api/auth/me). Здесь только наличие cookie,
-  // чтобы Edge-бандл не падал на jose CompressionStream.
-  if (token) {
+  if (token && (await hasValidSessionJwt(token))) {
     return NextResponse.next();
   }
 

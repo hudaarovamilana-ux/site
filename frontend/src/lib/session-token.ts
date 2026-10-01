@@ -1,5 +1,6 @@
 import { SignJWT } from "jose/jwt/sign";
 import { jwtVerify } from "jose/jwt/verify";
+import { getAuthSecret } from "@/lib/auth-secret";
 
 export const SESSION_COOKIE = "zk_session";
 export const SESSION_TTL_SEC = 60 * 60 * 24 * 30; // 30 days
@@ -11,14 +12,7 @@ export interface SessionPayload {
 }
 
 function getSecret(): Uint8Array {
-  const raw = process.env.AUTH_SECRET?.trim();
-  if (!raw || raw.length < 16) {
-    if (process.env.NODE_ENV === "production") {
-      return new TextEncoder().encode("zk-missing-auth-secret!!");
-    }
-    return new TextEncoder().encode("zk-dev-auth-secret-change-me");
-  }
-  return new TextEncoder().encode(raw);
+  return new TextEncoder().encode(getAuthSecret());
 }
 
 export async function createSessionToken(payload: SessionPayload): Promise<string> {

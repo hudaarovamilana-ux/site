@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 import { sendVerificationEmail } from "@/lib/email";
 import { isValidEmail, normalizeEmail } from "@/lib/email-validation";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
@@ -35,6 +36,14 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Введите корректный email латиницей (например name@mail.ru)" },
         { status: 400 }
+      );
+    }
+
+    const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+    if (existing) {
+      return NextResponse.json(
+        { error: "Аккаунт с таким email уже существует. Войдите." },
+        { status: 409 }
       );
     }
 

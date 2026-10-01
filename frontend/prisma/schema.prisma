@@ -35,3 +35,17 @@ model EmailVerification {
 
   @@index([expiresAt])
 }
+
+model PasswordReset {
+  email           String   @id
+  codeHash        String
+  expiresAt       DateTime
+  attempts        Int      @default(0)
+  lastSentAt      DateTime
+  sendCount       Int      @default(1)
+  sendWindowStart DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([expiresAt])
+}
