@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { PasswordField } from "@/components/auth/PasswordField";
@@ -26,7 +26,34 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sessionChecked, setSessionChecked] = useState(false);
   const resetSuccess = searchParams.get("reset") === "1";
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/auth/me", { credentials: "include", cache: "no-store" })
+      .then(async (res) => {
+        if (!res.ok) return null;
+        return res.json() as Promise<{ user?: { email?: string } }>;
+      })
+      .then((data) => {
+        if (cancelled) return;
+        if (data?.user?.email) {
+          const next = searchParams.get("next");
+          const target =
+            next?.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+          router.replace(target);
+          return;
+        }
+        setSessionChecked(true);
+      })
+      .catch(() => {
+        if (!cancelled) setSessionChecked(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [router, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,6 +132,9 @@ function LoginForm() {
         </>
       }
     >
+      {!sessionChecked ? (
+        <div className="h-40 animate-pulse rounded-xl bg-beige/60" />
+      ) : (
       <form onSubmit={handleSubmit} noValidate className="space-y-5">
         <div>
           <label className="block text-sm font-medium text-ink mb-2">Email</label>
@@ -157,6 +187,7 @@ function LoginForm() {
           {loading ? "Входим..." : "Войти"}
         </button>
       </form>
+      )}
     </AuthShell>
   );
 }

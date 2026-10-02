@@ -32,16 +32,18 @@ export default function PricingPage() {
                 </li>
               ))}
             </ul>
-            <Link
-              href={plan.id === "free" ? "/onboarding" : "/register"}
-              className={`mt-8 block text-center rounded-full py-3 text-sm font-medium transition ${
-                plan.highlighted
-                  ? "bg-ink text-cream hover:bg-ink/90"
-                  : "border border-beige-dark hover:bg-beige/40"
-              }`}
-            >
-              {plan.cta}
-            </Link>
+            {plan.id === "free" ? (
+              <Link
+                href="/onboarding"
+                className="mt-8 block text-center rounded-full py-3 text-sm font-medium transition border border-beige-dark hover:bg-beige/40"
+              >
+                {plan.cta}
+              </Link>
+            ) : (
+              <p className="mt-8 text-center text-sm text-ink-muted rounded-2xl bg-beige/50 px-4 py-3">
+                Оплата пока не подключена. Сейчас доступен бесплатный тариф.
+              </p>
+            )}
           </div>
         ))}
       </div>

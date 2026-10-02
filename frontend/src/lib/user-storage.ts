@@ -1,3 +1,4 @@
+import { clearKickSession } from "@/lib/kick-session";
 import type { UserStatus } from "@/lib/types";
 import type {
   AttachedFileMeta,
@@ -55,6 +56,7 @@ export function clearPersonalData(): void {
   for (const key of PERSONAL_DATA_KEYS) {
     localStorage.removeItem(key);
   }
+  clearKickSession();
 }
 
 export function clearHealthProfile(): void {

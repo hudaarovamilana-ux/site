@@ -54,7 +54,7 @@ export default function PreventivePage() {
             type="button"
             className="rounded-xl border border-beige-dark px-4 py-3 text-sm text-left hover:bg-beige/40 transition"
           >
-            <span className="font-medium block">Госполиклиника</span>
+            <span className="font-medium block">Государственная поликлиника</span>
             <span className="text-xs text-ink-muted">По ОМС</span>
           </button>
           <button

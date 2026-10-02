@@ -17,7 +17,7 @@ export const PRICING_PLANS = [
   {
     id: "premium",
     name: "Премиум",
-    price: "$5",
+    price: "450 ₽",
     period: "в месяц",
     features: [
       "Всё из бесплатного тарифа",
@@ -25,7 +25,7 @@ export const PRICING_PLANS = [
       "Неограниченные запросы в очереди",
       "Приоритетная поддержка",
     ],
-    cta: "Оформить подписку",
+    cta: "Оплата скоро",
     highlighted: true,
   },
 ];
