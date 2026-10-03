@@ -268,7 +268,7 @@ export default function RegisterPage() {
             </span>
           </label>
           <p className="text-xs text-ink-muted pl-7">
-            Не медучреждение и не замена очного врача. Оплата тарифа — отдельно.
+            Не медучреждение и не замена очного врача.
           </p>
         </div>
 
