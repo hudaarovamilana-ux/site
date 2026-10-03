@@ -245,7 +245,7 @@ export default function RegisterPage() {
               className="mt-1 shrink-0"
             />
             <span>
-              Мне 18+. Соглашаюсь на обработку данных по{" "}
+              Соглашаюсь на обработку данных по{" "}
               <Link href="/legal/privacy" className="underline text-ink" target="_blank">
                 политике
               </Link>{" "}
