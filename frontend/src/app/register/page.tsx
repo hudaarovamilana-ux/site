@@ -29,6 +29,8 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
+  const [consentPd, setConsentPd] = useState(false);
+  const [consentHealth, setConsentHealth] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -44,6 +46,10 @@ export default function RegisterPage() {
     if (!email.trim()) return "Введите email";
     if (!isValidEmail(email)) return "Email только латиницей, например name@mail.ru";
     if (password.length < 6) return "Пароль должен быть не менее 6 символов";
+    if (!consentPd) return "Нужно согласие на обработку персональных данных";
+    if (!consentHealth) {
+      return "Нужно согласие на обработку сведений о здоровье для работы кабинета";
+    }
     return null;
   };
 
@@ -218,6 +224,43 @@ export default function RegisterPage() {
           autoComplete="new-password"
           placeholder="Не менее 6 символов"
         />
+
+        <div className="space-y-3 rounded-2xl border border-beige-dark/50 bg-beige/30 px-4 py-4">
+          <label className="flex gap-3 text-sm text-ink-soft cursor-pointer">
+            <input
+              type="checkbox"
+              checked={consentPd}
+              onChange={(e) => setConsentPd(e.target.checked)}
+              className="mt-1 shrink-0"
+            />
+            <span>
+              Соглашаюсь на обработку персональных данных по{" "}
+              <Link href="/legal/privacy" className="underline text-ink" target="_blank">
+                Политике конфиденциальности
+              </Link>{" "}
+              и принимаю{" "}
+              <Link href="/legal/offer" className="underline text-ink" target="_blank">
+                оферту
+              </Link>
+              .
+            </span>
+          </label>
+          <label className="flex gap-3 text-sm text-ink-soft cursor-pointer">
+            <input
+              type="checkbox"
+              checked={consentHealth}
+              onChange={(e) => setConsentHealth(e.target.checked)}
+              className="mt-1 shrink-0"
+            />
+            <span>
+              Соглашаюсь на обработку сведений о здоровье (статус, срок, анкета, вопросы к ИИ),
+              которые я сама указываю в сервисе, для работы личного кабинета.
+            </span>
+          </label>
+          <p className="text-xs text-ink-muted pl-7">
+            Сервис информационный: это не медучреждение и не замена очного врача.
+          </p>
+        </div>
 
         {error && (
           <p className="text-sm text-rose-muted bg-rose-pale/50 rounded-xl px-4 py-3">

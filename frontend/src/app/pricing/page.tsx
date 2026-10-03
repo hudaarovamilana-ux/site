@@ -4,8 +4,12 @@ export default function PricingPage() {
   return (
     <div className="mx-auto max-w-4xl px-6 py-16">
       <h1 className="text-3xl font-medium text-ink text-center mb-2">Тарифы</h1>
-      <p className="text-center text-ink-muted text-sm mb-12 max-w-md mx-auto">
+      <p className="text-center text-ink-muted text-sm mb-6 max-w-md mx-auto">
         Месяц или сопровождение на весь срок беременности — один платёж вместо девяти.
+      </p>
+      <p className="text-center text-xs text-ink-muted mb-12 max-w-xl mx-auto rounded-2xl bg-beige/50 px-4 py-3">
+        «Женская консультация» — информационный цифровой сервис. Это не медицинское учреждение,
+        не телемедицина и не замена очного приёма врача. Ответы даёт ИИ и носят общий характер.
       </p>
 
       <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
@@ -43,7 +47,7 @@ export default function PricingPage() {
               ))}
             </ul>
             <p className="mt-8 text-center text-sm text-ink-muted rounded-2xl bg-beige/50 px-4 py-3">
-              Оплата пока не подключена. Карточка покажет цену, когда включим ЮKassa.
+              Оплата пока не подключена. Кнопку оплаты покажем после договора с платёжным сервисом.
             </p>
           </div>
         ))}

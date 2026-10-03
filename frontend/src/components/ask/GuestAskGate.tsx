@@ -6,9 +6,9 @@ const HEALTH_QUOTE =
 export function GuestAskGate() {
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-medium text-ink mb-2">Задать вопрос</h1>
+      <h1 className="text-2xl font-medium text-ink mb-2">Спросить ИИ</h1>
       <p className="text-sm text-ink-muted mb-6">
-        Вопросы ИИ доступны после входа в аккаунт.
+        Вопросы к информационной системе доступны после входа. Это не консультация врача.
       </p>
       <div className="glass-card rounded-2xl p-6 mb-6 space-y-4">
         <p className="text-sm text-ink-soft leading-relaxed">

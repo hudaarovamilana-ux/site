@@ -83,9 +83,12 @@ export function AskForm({ initialQuestion = "" }: AskFormProps) {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-medium text-ink mb-2">Задать вопрос</h1>
-      <p className="text-sm text-ink-muted mb-6">
-        Задайте вопрос — ИИ даст ориентир, при необходимости направит к врачу
+      <h1 className="text-2xl font-medium text-ink mb-2">Спросить ИИ</h1>
+      <p className="text-sm text-ink-muted mb-3">
+        Отвечает информационная система (ИИ). Это общий ориентир, не диагноз и не приём врача.
+      </p>
+      <p className="text-xs text-ink-muted mb-6 rounded-xl bg-beige/50 px-4 py-3">
+        При тревожных симптомах обращайтесь за очной медицинской помощью.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4 mb-6">

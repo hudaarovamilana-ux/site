@@ -35,7 +35,7 @@ const NAV: NavItem[] = [
   { href: "/dashboard/preventive", label: "Профилактика", icon: Calendar, statuses: ["not_pregnant", "planning"] },
   { href: "/contraception-test", label: "Тест: контрацепция", icon: Shield, statuses: ["not_pregnant", "planning"] },
   { href: "/dashboard/trust-chat", label: "Чат доверия", icon: MessageCircleHeart, statuses: ["pregnant", "not_pregnant", "planning"] },
-  { href: "/dashboard/ask", label: "Спросить", icon: MessageCircle, statuses: ["pregnant", "not_pregnant", "planning"] },
+  { href: "/dashboard/ask", label: "Спросить ИИ", icon: MessageCircle, statuses: ["pregnant", "not_pregnant", "planning"] },
   { href: "/dashboard/health-assessment", label: "Оценка здоровья", icon: Stethoscope, statuses: ["pregnant", "not_pregnant", "planning"] },
   { href: "/dashboard/profile", label: "Профиль", icon: User, statuses: ["pregnant", "not_pregnant", "planning"] },
 ];

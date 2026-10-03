@@ -24,7 +24,7 @@ const columns = [
     links: [
       { href: "/dashboard/profile", label: "Профиль" },
       { href: "/dashboard/health-assessment", label: "Оценка здоровья" },
-      { href: "/dashboard/ask", label: "Спросить врача" },
+      { href: "/dashboard/ask", label: "Спросить ИИ" },
       { href: "/pricing", label: "Тарифы" },
     ],
   },
@@ -78,7 +78,7 @@ export function Footer() {
 
         <div className="mt-12 pt-8 border-t border-beige-dark/40 flex flex-col sm:flex-row justify-between gap-4 text-xs text-ink-muted">
           <span>© {new Date().getFullYear()} Женская консультация</span>
-          <span>Информация не заменяет очный приём врача</span>
+          <span>Информационный сервис · не медучреждение · не заменяет очный приём врача</span>
         </div>
       </div>
     </footer>

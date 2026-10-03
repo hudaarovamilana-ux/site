@@ -21,7 +21,7 @@ function buildAskDraft(result: ContraceptionResult): string {
   return (
     `Прошла тест на подбор контрацепции. Рекомендовали: ${result.primary_method} ` +
     `(альтернатива: ${result.secondary_method}).${condomNote} ` +
-    "Хочу уточнить у гинеколога: "
+    "Хочу уточнить у ИИ: "
   );
 }
 
@@ -148,7 +148,7 @@ export function ContraceptionQuiz() {
               href="/ask"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-medium text-cream hover:bg-ink/90 transition"
             >
-              Задать вопрос гинекологу
+              Задать вопрос ИИ
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
