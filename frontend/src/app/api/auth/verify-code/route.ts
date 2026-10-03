@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { verifyCode } from "@/lib/verification-store";
 import { AuthError, registerUser } from "@/lib/auth";
 import { isValidEmail, normalizeEmail } from "@/lib/email-validation";
+import { LEGAL_DOCS_VERSION } from "@/lib/legal-docs";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { applySessionCookie } from "@/lib/session";
 import { getUserProfile } from "@/lib/user-profile-server";
@@ -23,10 +24,14 @@ export async function POST(request: Request) {
       email?: string;
       code?: string;
       password?: string;
+      consentPd?: boolean;
+      consentHealth?: boolean;
     };
     const email = normalizeEmail(body.email ?? "");
     const code = body.code?.trim() ?? "";
     const password = body.password ?? "";
+    const consentPd = body.consentPd === true;
+    const consentHealth = body.consentHealth === true;
 
     if (!isValidEmail(email)) {
       return NextResponse.json(
@@ -43,6 +48,18 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    if (!consentPd) {
+      return NextResponse.json(
+        { error: "Нужно согласие на обработку персональных данных" },
+        { status: 400 }
+      );
+    }
+    if (!consentHealth) {
+      return NextResponse.json(
+        { error: "Нужно согласие на обработку сведений о здоровье" },
+        { status: 400 }
+      );
+    }
 
     const result = await verifyCode(email, code);
     if (!result.ok) {
@@ -53,6 +70,9 @@ export async function POST(request: Request) {
       email,
       name: result.name,
       password,
+      consentPd,
+      consentHealth,
+      consentDocsVersion: LEGAL_DOCS_VERSION,
     });
 
     let profile = null;

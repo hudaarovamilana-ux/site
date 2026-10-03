@@ -41,6 +41,9 @@ export async function registerUser(input: {
   email: string;
   name: string;
   password: string;
+  consentPd: boolean;
+  consentHealth: boolean;
+  consentDocsVersion: string;
 }): Promise<{ session: SessionPayload; token: string }> {
   await requireDatabase();
 
@@ -52,15 +55,32 @@ export async function registerUser(input: {
   if (password.length < 6) {
     throw new AuthError("Пароль должен быть не менее 6 символов");
   }
+  if (!input.consentPd) {
+    throw new AuthError("Нужно согласие на обработку персональных данных");
+  }
+  if (!input.consentHealth) {
+    throw new AuthError("Нужно согласие на обработку сведений о здоровье");
+  }
+  if (!input.consentDocsVersion.trim()) {
+    throw new AuthError("Не указана версия правовых документов");
+  }
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     throw new AuthError("Аккаунт с таким email уже существует. Войдите.", 409);
   }
 
+  const now = new Date();
   const passwordHash = await hashPassword(password);
   const user = await prisma.user.create({
-    data: { email, name, passwordHash },
+    data: {
+      email,
+      name,
+      passwordHash,
+      consentPdAt: now,
+      consentHealthAt: now,
+      consentDocsVersion: input.consentDocsVersion.trim(),
+    },
   });
 
   const session: SessionPayload = {

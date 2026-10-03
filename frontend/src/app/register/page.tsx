@@ -87,6 +87,11 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
 
+    if (!consentPd || !consentHealth) {
+      setError("Вернитесь к форме и подтвердите согласия");
+      setStep("form");
+      return;
+    }
     if (!/^\d{6}$/.test(code.trim())) {
       setError("Введите 6-значный код из письма");
       return;
@@ -96,7 +101,13 @@ export default function RegisterPage() {
     try {
       const data = await postJson<{ verified: boolean; name: string; email: string }>(
         "/api/auth/verify-code",
-        { email: email.trim(), code: code.trim(), password }
+        {
+          email: email.trim(),
+          code: code.trim(),
+          password,
+          consentPd,
+          consentHealth,
+        }
       );
       registerNewUser(data.name || name.trim(), data.email || email.trim());
       // Сохраняем на сервер анкету/имя, если уже заполняли на этом устройстве
@@ -234,15 +245,16 @@ export default function RegisterPage() {
               className="mt-1 shrink-0"
             />
             <span>
-              Соглашаюсь на обработку персональных данных по{" "}
+              Мне есть 18 лет. Соглашаюсь на обработку персональных данных по{" "}
               <Link href="/legal/privacy" className="underline text-ink" target="_blank">
                 Политике конфиденциальности
               </Link>{" "}
-              и принимаю{" "}
+              (включая трансграничную передачу для работы сайта) и принимаю условия бесплатного
+              использования сервиса из{" "}
               <Link href="/legal/offer" className="underline text-ink" target="_blank">
-                оферту
+                оферты
               </Link>
-              .
+              . Платный доступ оформляется отдельно при оплате тарифа.
             </span>
           </label>
           <label className="flex gap-3 text-sm text-ink-soft cursor-pointer">
@@ -254,7 +266,8 @@ export default function RegisterPage() {
             />
             <span>
               Соглашаюсь на обработку сведений о здоровье (статус, срок, анкета, вопросы к ИИ),
-              которые я сама указываю в сервисе, для работы личного кабинета.
+              которые я сама указываю в сервисе, для работы личного кабинета. Согласие можно
+              отозвать по email из реквизитов.
             </span>
           </label>
           <p className="text-xs text-ink-muted pl-7">

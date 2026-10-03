@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalShell } from "@/components/legal/LegalShell";
+import { LEGAL_DOCS_UPDATED_LABEL } from "@/lib/legal-docs";
 
 export const metadata: Metadata = {
   title: "Порядок оказания услуг — Женская консультация",
@@ -8,15 +9,21 @@ export const metadata: Metadata = {
 
 export default function DeliveryPage() {
   return (
-    <LegalShell title="Порядок оказания услуг" updated="3 октября 2026 г.">
+    <LegalShell title="Порядок оказания услуг" updated={LEGAL_DOCS_UPDATED_LABEL}>
       <p>
         Сервис «Женская консультация» — полностью цифровой. Физической доставки товаров нет.
       </p>
 
       <h2>Как получить доступ</h2>
       <ol>
-        <li>Создайте аккаунт на сайте.</li>
-        <li>Выберите тариф на странице <Link href="/pricing" className="underline text-ink">Тарифы</Link>.</li>
+        <li>Создайте аккаунт на сайте (бесплатная регистрация).</li>
+        <li>
+          Выберите тариф на странице{" "}
+          <Link href="/pricing" className="underline text-ink">
+            Тарифы
+          </Link>
+          .
+        </li>
         <li>Оплатите картой или другим способом на защищённой платёжной форме.</li>
         <li>После подтверждения оплаты доступ открывается в личном кабинете автоматически.</li>
       </ol>
@@ -35,6 +42,15 @@ export default function DeliveryPage() {
           Реквизиты
         </Link>
         , укажите email аккаунта и время оплаты. Мы проверим платёж и откроем доступ вручную.
+      </p>
+
+      <h2>Возврат</h2>
+      <p>
+        Условия возврата описаны в{" "}
+        <Link href="/legal/offer" className="underline text-ink">
+          Публичной оферте
+        </Link>
+        .
       </p>
     </LegalShell>
   );

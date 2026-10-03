@@ -9,19 +9,22 @@ datasource db {
 }
 
 model User {
-  id                String   @id @default(cuid())
-  email             String   @unique
-  name              String
-  passwordHash      String
-  status            String?
-  onboardingJson    Json?
-  healthProfileJson Json?
-  checklistJson     Json?
-  aiAskUsed         Int      @default(0)
-  aiTrustUsed       Int      @default(0)
-  aiHealthUsed      Boolean  @default(false)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  name                  String
+  passwordHash          String
+  status                String?
+  onboardingJson        Json?
+  healthProfileJson     Json?
+  checklistJson         Json?
+  aiAskUsed             Int       @default(0)
+  aiTrustUsed           Int       @default(0)
+  aiHealthUsed          Boolean   @default(false)
+  consentPdAt           DateTime?
+  consentHealthAt       DateTime?
+  consentDocsVersion    String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 }
 
 model EmailVerification {
