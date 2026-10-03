@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function OfferPage() {
   const op = getLegalOperator();
-  const seller = op.fullName || "Самозанятый исполнитель сервиса «Женская консультация»";
+  const seller = op.fullName || "Исполнитель сервиса «Женская консультация»";
 
   return (
     <LegalShell title="Публичная оферта" updated="3 октября 2026 г.">
@@ -95,7 +95,7 @@ export default function OfferPage() {
 
       <h2>8. Реквизиты исполнителя</h2>
       <p>
-        Актуальные реквизиты самозанятого исполнителя опубликованы на странице{" "}
+        Актуальные реквизиты исполнителя опубликованы на странице{" "}
         <Link href="/legal/requisites" className="underline text-ink">
           Реквизиты
         </Link>

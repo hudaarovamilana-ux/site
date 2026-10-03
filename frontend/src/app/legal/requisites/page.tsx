@@ -15,20 +15,13 @@ export default function RequisitesPage() {
 
   return (
     <LegalShell title="Реквизиты" updated="3 октября 2026 г.">
-      <p>
-        Исполнитель сервиса «Женская консультация» применяет специальный налоговый режим «Налог на
-        профессиональный доход» (самозанятый).
-      </p>
+      <p>Контакты и реквизиты сервиса «Женская консультация».</p>
 
       {ready ? (
         <div className="rounded-2xl border border-beige-dark/50 bg-white/70 px-5 py-5 space-y-3 text-ink">
           <p>
             <span className="text-ink-muted">Исполнитель: </span>
             {op.fullName}
-          </p>
-          <p>
-            <span className="text-ink-muted">Статус: </span>
-            плательщик налога на профессиональный доход (самозанятый)
           </p>
           <p>
             <span className="text-ink-muted">ИНН: </span>
@@ -57,7 +50,7 @@ export default function RequisitesPage() {
         </div>
       ) : (
         <p className="rounded-2xl border border-beige-dark/50 bg-beige/40 px-5 py-4">
-          Реквизиты исполнителя скоро будут опубликованы на этой странице (ФИО, ИНН, контакты).
+          Реквизиты скоро будут опубликованы на этой странице.
         </p>
       )}
 
