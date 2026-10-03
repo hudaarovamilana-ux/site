@@ -28,14 +28,23 @@ const columns = [
       { href: "/pricing", label: "Тарифы" },
     ],
   },
+  {
+    title: "Документы",
+    links: [
+      { href: "/legal/offer", label: "Публичная оферта" },
+      { href: "/legal/privacy", label: "Конфиденциальность" },
+      { href: "/legal/delivery", label: "Порядок оказания" },
+      { href: "/legal/requisites", label: "Реквизиты" },
+    ],
+  },
 ];
 
 export function Footer() {
   return (
     <footer className="border-t border-beige-dark/50 bg-beige/30 mt-auto">
       <div className="mx-auto max-w-6xl px-6 py-16">
-        <div className="grid gap-12 md:grid-cols-4">
-          <div className="md:col-span-1">
+        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-5">
+          <div className="lg:col-span-1">
             <div className="flex items-center gap-2 text-ink/70 mb-4">
               <Logo className="w-6 h-8" />
               <span className="text-sm font-medium">Женская консультация</span>
