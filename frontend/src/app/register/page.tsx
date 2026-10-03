@@ -264,7 +264,7 @@ export default function RegisterPage() {
               className="mt-1 shrink-0"
             />
             <span>
-              Соглашаюсь на обработку сведений о здоровье, которые сама указываю в сервисе.
+              Соглашаюсь на обработку сведений о здоровье.
             </span>
           </label>
           <p className="text-xs text-ink-muted pl-7">
