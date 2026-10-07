@@ -4,6 +4,13 @@ export const AI_LIMITS = {
   trustChat: 5,
 } as const;
 
+/** Лимиты при активной подписке */
+export const AI_PREMIUM_LIMITS = {
+  healthAssessment: 30,
+  ask: 100,
+  trustChat: 100,
+} as const;
+
 export const AI_COOKIE = {
   healthUsed: "zk_health_used",
   askCount: "zk_ask_count",

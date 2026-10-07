@@ -23,8 +23,29 @@ model User {
   consentPdAt           DateTime?
   consentHealthAt       DateTime?
   consentDocsVersion    String?
+  premiumUntil          DateTime?
+  premiumPlan           String?
+  payments              Payment[]
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+}
+
+model Payment {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId          String
+  amountValue     String
+  currency        String    @default("RUB")
+  status          String    @default("pending")
+  yookassaId      String?   @unique
+  confirmationUrl String?
+  paidAt          DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
 }
 
 model EmailVerification {

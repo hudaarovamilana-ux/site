@@ -13,7 +13,12 @@
    - `RESEND_API_KEY` — для отправки кода на почту при регистрации ([resend.com](https://resend.com))
    - `RESEND_FROM` — необязательно, например `Женская консультация <onboarding@resend.dev>`
    - `VERIFICATION_SECRET` — случайная длинная строка (безопасность кодов)
+   - `YOOKASSA_SHOP_ID` — идентификатор магазина ЮKassa
+   - `YOOKASSA_SECRET_KEY` — секретный ключ ЮKassa
+   - `NEXT_PUBLIC_SITE_URL` — `https://www.womenshealth.tech` (для return_url оплаты)
 6. **Networking → Generate Domain**.
+7. В кабинете ЮKassa → HTTP-уведомления: URL  
+   `https://www.womenshealth.tech/api/payments/webhook`, событие `payment.succeeded`.
 
 При каждом запуске автоматически выполняется `prisma migrate deploy`, поэтому таблицы
 базы данных создаются до старта сайта.

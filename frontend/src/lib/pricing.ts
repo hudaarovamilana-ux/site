@@ -29,7 +29,7 @@ export const PRICING_PLANS: PricingPlan[] = [
       "Приоритетная поддержка сервиса",
       "Доступ ко всем материалам сайта",
     ],
-    cta: "Оплата скоро",
+    cta: "Оплатить",
     highlighted: false,
   },
   {
@@ -47,7 +47,7 @@ export const PRICING_PLANS: PricingPlan[] = [
       "Расширенные вопросы к ИИ",
       "Чеклисты и материалы по неделям",
     ],
-    cta: "Оплата скоро",
+    cta: "Оплатить",
     highlighted: true,
   },
 ];
