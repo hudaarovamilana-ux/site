@@ -16,6 +16,8 @@
    - `YOOKASSA_SHOP_ID` — идентификатор магазина ЮKassa
    - `YOOKASSA_SECRET_KEY` — секретный ключ ЮKassa
    - `NEXT_PUBLIC_SITE_URL` — `https://www.womenshealth.tech` (для return_url оплаты)
+   - `MOY_NALOG_INN` — ИНН самозанятого
+   - `MOY_NALOG_PASSWORD` — пароль от кабинета «Мой налог» / lknpd.nalog.ru
 6. **Networking → Generate Domain**.
 7. В кабинете ЮKassa → HTTP-уведомления: URL  
    `https://www.womenshealth.tech/api/payments/webhook`, событие `payment.succeeded`.

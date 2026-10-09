@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
 type PaymentStatus = {
-  payment: { id: string; status: string; planId: string };
+  payment: { id: string; status: string; planId: string; receiptSent?: boolean };
   premium: { active: boolean; until: string | null };
 };
 
@@ -77,6 +77,9 @@ function SuccessInner() {
       {!error && succeeded && (
         <p className="text-ink-soft mb-8">
           Доступ открыт{untilLabel ? ` до ${untilLabel}` : ""}. Можно переходить в кабинет.
+          {data?.payment.receiptSent
+            ? " Чек отправлен на email аккаунта."
+            : " Чек придёт на email аккаунта в течение нескольких минут."}
         </p>
       )}
 

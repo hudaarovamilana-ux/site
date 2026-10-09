@@ -59,6 +59,48 @@ export async function sendVerificationEmail(to: string, code: string): Promise<v
   );
 }
 
+export async function sendReceiptEmail(input: {
+  to: string;
+  amount: string;
+  serviceName: string;
+  receiptUrl: string;
+}): Promise<void> {
+  const subject = "Чек за оплату — Женская консультация";
+  const text = [
+    "Здравствуйте!",
+    "",
+    `Оплата ${input.amount} ₽ прошла.`,
+    input.serviceName,
+    "",
+    `Чек самозанятого: ${input.receiptUrl}`,
+    "",
+    "С заботой,",
+    "Женская консультация",
+  ].join("\n");
+
+  const html = `
+    <div style="font-family: Georgia, serif; max-width: 480px; margin: 0 auto; color: #2c2420;">
+      <p>Здравствуйте!</p>
+      <p>Оплата <strong>${input.amount} ₽</strong> прошла.</p>
+      <p>${input.serviceName}</p>
+      <p><a href="${input.receiptUrl}" style="color: #8b4a5c;">Открыть чек</a></p>
+      <p style="margin-top: 24px; color: #6b5f58; font-size: 14px;">С заботой,<br>Женская консультация</p>
+    </div>
+  `;
+
+  if (process.env.RESEND_API_KEY) {
+    await sendViaResend(input.to, subject, html, text);
+    return;
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[email:dev] Чек для ${input.to}: ${input.receiptUrl}`);
+    return;
+  }
+
+  throw new Error("Почта не настроена. Добавьте RESEND_API_KEY.");
+}
+
 export async function sendPasswordResetEmail(to: string, code: string): Promise<void> {
   const subject = "Сброс пароля — Женская консультация";
   const text = [

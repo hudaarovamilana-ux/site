@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { isMoyNalogConfigured } from "@/lib/moy-nalog";
+import { ensurePaymentReceipt } from "@/lib/payment-receipt";
 import { grantPremiumAccess, isPaidPlanId } from "@/lib/premium";
 import { getYooKassaPayment, isYooKassaConfigured } from "@/lib/yookassa";
 
@@ -44,7 +46,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Payment not found" }, { status: 404 });
     }
 
-    if (payment.status === "succeeded") {
+    if (payment.status === "succeeded" && payment.receiptEmailSentAt) {
       return NextResponse.json({ ok: true, already: true });
     }
 
@@ -67,11 +69,22 @@ export async function POST(request: Request) {
       });
     }
 
-    await grantPremiumAccess({
-      userId: payment.userId,
-      planId,
-      paymentId: payment.id,
-    });
+    if (payment.status !== "succeeded") {
+      await grantPremiumAccess({
+        userId: payment.userId,
+        planId,
+        paymentId: payment.id,
+      });
+    }
+
+    try {
+      await ensurePaymentReceipt(payment.id);
+    } catch (error) {
+      console.error("[api/payments/webhook] receipt", error);
+      if (isMoyNalogConfigured()) {
+        return NextResponse.json({ error: "Receipt failed" }, { status: 500 });
+      }
+    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {

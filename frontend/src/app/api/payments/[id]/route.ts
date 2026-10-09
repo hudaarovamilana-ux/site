@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { AuthError, requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { ensurePaymentReceipt } from "@/lib/payment-receipt";
 import { grantPremiumAccess, isPaidPlanId, isPremiumActive } from "@/lib/premium";
 import { getYooKassaPayment, isYooKassaConfigured } from "@/lib/yookassa";
 
@@ -41,6 +42,24 @@ export async function GET(_request: Request, { params }: Params) {
       }
     }
 
+    const fresh = await prisma.payment.findUnique({
+      where: { id: payment.id },
+      select: { status: true, receiptEmailSentAt: true },
+    });
+
+    if (fresh?.status === "succeeded" && !fresh.receiptEmailSentAt) {
+      try {
+        await ensurePaymentReceipt(payment.id);
+      } catch (error) {
+        console.error("[api/payments/id] receipt", error);
+      }
+    }
+
+    const afterReceipt = await prisma.payment.findUnique({
+      where: { id: payment.id },
+      select: { receiptEmailSentAt: true },
+    });
+
     const user = await prisma.user.findUnique({
       where: { id: session.userId },
       select: { premiumUntil: true, premiumPlan: true },
@@ -51,9 +70,10 @@ export async function GET(_request: Request, { params }: Params) {
       payment: {
         id: payment.id,
         planId: payment.planId,
-        status: payment.status,
+        status: fresh?.status ?? payment.status,
         amountValue: payment.amountValue,
         paidAt: payment.paidAt,
+        receiptSent: Boolean(afterReceipt?.receiptEmailSentAt),
       },
       premium: {
         active: isPremiumActive(user?.premiumUntil),

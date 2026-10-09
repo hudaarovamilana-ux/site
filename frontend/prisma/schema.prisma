@@ -38,10 +38,15 @@ model Payment {
   amountValue     String
   currency        String    @default("RUB")
   status          String    @default("pending")
-  yookassaId      String?   @unique
-  confirmationUrl String?
-  paidAt          DateTime?
-  createdAt       DateTime  @default(now())
+  yookassaId         String?   @unique
+  confirmationUrl    String?
+  paidAt             DateTime?
+  receiptUuid        String?
+  receiptUrl         String?
+  receiptClaimedAt   DateTime?
+  receiptEmailSentAt DateTime?
+  receiptError       String?
+  createdAt          DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
   @@index([userId])
