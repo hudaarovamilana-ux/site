@@ -38,6 +38,7 @@ model Payment {
   amountValue     String
   currency        String    @default("RUB")
   status          String    @default("pending")
+  invoiceNumber   Int       @unique @default(autoincrement())
   yookassaId         String?   @unique
   confirmationUrl    String?
   paidAt             DateTime?

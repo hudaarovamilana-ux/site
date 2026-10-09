@@ -11,13 +11,19 @@ type PaymentStatus = {
 
 function SuccessInner() {
   const searchParams = useSearchParams();
-  const paymentId = searchParams.get("payment_id");
+  const paymentId = searchParams.get("Shp_payment") || searchParams.get("payment_id");
+  const invId = searchParams.get("InvId") || searchParams.get("inv_id");
+  const statusUrl = paymentId
+    ? `/api/payments/${paymentId}`
+    : invId
+      ? `/api/payments/invoice/${invId}`
+      : "";
   const [data, setData] = useState<PaymentStatus | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!paymentId) {
+    if (!statusUrl) {
       setError("Не найден номер платежа");
       setLoading(false);
       return;
@@ -28,7 +34,7 @@ function SuccessInner() {
 
     const load = async () => {
       try {
-        const res = await fetch(`/api/payments/${paymentId}`, {
+        const res = await fetch(statusUrl, {
           credentials: "include",
           cache: "no-store",
         });
@@ -55,9 +61,9 @@ function SuccessInner() {
     return () => {
       cancelled = true;
     };
-  }, [paymentId]);
+  }, [statusUrl]);
 
-  const succeeded = data?.payment.status === "succeeded" || data?.premium.active;
+  const succeeded = data?.payment.status === "succeeded";
   const untilLabel = data?.premium.until
     ? new Date(data.premium.until).toLocaleDateString("ru-RU")
     : null;
@@ -77,9 +83,7 @@ function SuccessInner() {
       {!error && succeeded && (
         <p className="text-ink-soft mb-8">
           Доступ открыт{untilLabel ? ` до ${untilLabel}` : ""}. Можно переходить в кабинет.
-          {data?.payment.receiptSent
-            ? " Чек отправлен на email аккаунта."
-            : " Чек придёт на email аккаунта в течение нескольких минут."}
+          Чек самозанятого придёт на email аккаунта от Robokassa.
         </p>
       )}
 

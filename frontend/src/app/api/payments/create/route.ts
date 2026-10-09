@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
 import { AuthError, requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { getLegalOperator } from "@/lib/legal-operator";
 import { isPaidPlanId, PAID_PLANS } from "@/lib/premium";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
-import { createYooKassaPayment, isYooKassaConfigured } from "@/lib/yookassa";
+import { buildRobokassaUrl, isRobokassaConfigured } from "@/lib/robokassa";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    if (!isYooKassaConfigured()) {
+    if (!isRobokassaConfigured()) {
       return NextResponse.json(
         { error: "Оплата временно недоступна. Попробуйте позже." },
         { status: 503 }
@@ -42,7 +41,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Войдите в аккаунт" }, { status: 401 });
     }
 
-    const siteUrl = getLegalOperator().siteUrl.replace(/\/$/, "");
     const payment = await prisma.payment.create({
       data: {
         userId: user.id,
@@ -53,37 +51,17 @@ export async function POST(request: Request) {
       },
     });
 
-    const yooPayment = await createYooKassaPayment({
-      plan,
-      returnUrl: `${siteUrl}/pricing/success?payment_id=${payment.id}`,
-      customerEmail: user.email,
-      metadata: {
-        paymentId: payment.id,
-        userId: user.id,
-        planId: plan.id,
-      },
-      idempotenceKey: payment.id,
+    const confirmationUrl = buildRobokassaUrl({
+      invoiceNumber: payment.invoiceNumber,
+      amountValue: plan.amountValue,
+      description: plan.description,
+      email: user.email,
+      paymentId: payment.id,
     });
-
-    const confirmationUrl = yooPayment.confirmation?.confirmation_url;
-    if (!confirmationUrl) {
-      await prisma.payment.update({
-        where: { id: payment.id },
-        data: { status: "failed", yookassaId: yooPayment.id },
-      });
-      return NextResponse.json(
-        { error: "Не удалось получить ссылку на оплату" },
-        { status: 502 }
-      );
-    }
 
     await prisma.payment.update({
       where: { id: payment.id },
-      data: {
-        yookassaId: yooPayment.id,
-        confirmationUrl,
-        status: yooPayment.status || "pending",
-      },
+      data: { confirmationUrl, status: "pending" },
     });
 
     return NextResponse.json({

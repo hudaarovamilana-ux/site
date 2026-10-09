@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { AuthError, requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { ensurePaymentReceipt } from "@/lib/payment-receipt";
 import { grantPremiumAccess, isPaidPlanId, isPremiumActive } from "@/lib/premium";
+import { isRobokassaConfigured, refreshRobokassaPayment } from "@/lib/robokassa";
 import { getYooKassaPayment, isYooKassaConfigured } from "@/lib/yookassa";
 
 export const runtime = "nodejs";
@@ -29,7 +29,6 @@ export async function GET(_request: Request, { params }: Params) {
             paymentId: payment.id,
           });
           payment.status = "succeeded";
-          payment.paidAt = new Date();
         } else if (remote.status === "canceled") {
           await prisma.payment.update({
             where: { id: payment.id },
@@ -42,22 +41,22 @@ export async function GET(_request: Request, { params }: Params) {
       }
     }
 
-    const fresh = await prisma.payment.findUnique({
-      where: { id: payment.id },
-      select: { status: true, receiptEmailSentAt: true },
-    });
-
-    if (fresh?.status === "succeeded" && !fresh.receiptEmailSentAt) {
+    if (
+      payment.status !== "succeeded" &&
+      !payment.yookassaId &&
+      payment.invoiceNumber &&
+      isRobokassaConfigured()
+    ) {
       try {
-        await ensurePaymentReceipt(payment.id);
+        await refreshRobokassaPayment(payment.invoiceNumber);
       } catch (error) {
-        console.error("[api/payments/id] receipt", error);
+        console.error("[api/payments/id] robokassa", error);
       }
     }
 
-    const afterReceipt = await prisma.payment.findUnique({
+    const fresh = await prisma.payment.findUnique({
       where: { id: payment.id },
-      select: { receiptEmailSentAt: true },
+      select: { status: true, paidAt: true },
     });
 
     const user = await prisma.user.findUnique({
@@ -72,8 +71,7 @@ export async function GET(_request: Request, { params }: Params) {
         planId: payment.planId,
         status: fresh?.status ?? payment.status,
         amountValue: payment.amountValue,
-        paidAt: payment.paidAt,
-        receiptSent: Boolean(afterReceipt?.receiptEmailSentAt),
+        paidAt: fresh?.paidAt ?? payment.paidAt,
       },
       premium: {
         active: isPremiumActive(user?.premiumUntil),

@@ -13,14 +13,18 @@
    - `RESEND_API_KEY` — для отправки кода на почту при регистрации ([resend.com](https://resend.com))
    - `RESEND_FROM` — необязательно, например `Женская консультация <onboarding@resend.dev>`
    - `VERIFICATION_SECRET` — случайная длинная строка (безопасность кодов)
-   - `YOOKASSA_SHOP_ID` — идентификатор магазина ЮKassa
-   - `YOOKASSA_SECRET_KEY` — секретный ключ ЮKassa
-   - `NEXT_PUBLIC_SITE_URL` — `https://www.womenshealth.tech` (для return_url оплаты)
-   - `MOY_NALOG_INN` — ИНН самозанятого
-   - `MOY_NALOG_PASSWORD` — пароль от кабинета «Мой налог» / lknpd.nalog.ru
+   - `ROBOKASSA_MERCHANT_LOGIN` — идентификатор магазина Robokassa
+   - `ROBOKASSA_PASSWORD_1` — пароль №1
+   - `ROBOKASSA_PASSWORD_2` — пароль №2
+   - `ROBOKASSA_TEST` — `1`, только пока магазин в тестовом режиме
+   - `NEXT_PUBLIC_SITE_URL` — `https://www.womenshealth.tech`
 6. **Networking → Generate Domain**.
-7. В кабинете ЮKassa → HTTP-уведомления: URL  
-   `https://www.womenshealth.tech/api/payments/webhook`, событие `payment.succeeded`.
+7. В технических настройках Robokassa: алгоритм хеша **MD5**.
+   - Result URL: `https://www.womenshealth.tech/api/payments/robokassa` (метод POST)
+   - Success URL: `https://www.womenshealth.tech/pricing/success`
+   - Fail URL: `https://www.womenshealth.tech/pricing`
+   Включите «Робочеки СМЗ» и дайте сервису доступ к «Мой налог», когда кабинет это попросит.
+   Пароль от «Мой налог» на сайт не добавляйте: чек формирует Robokassa.
 
 При каждом запуске автоматически выполняется `prisma migrate deploy`, поэтому таблицы
 базы данных создаются до старта сайта.
