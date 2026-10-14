@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
+import { getLegalOperator } from "@/lib/legal-operator";
 
 const columns = [
   {
@@ -40,6 +41,9 @@ const columns = [
 ];
 
 export function Footer() {
+  const operator = getLegalOperator();
+  const phoneHref = operator.phone.replace(/[^\d+]/g, "");
+
   return (
     <footer className="border-t border-beige-dark/50 bg-beige/30 mt-auto">
       <div className="mx-auto max-w-6xl px-6 py-16">
@@ -76,9 +80,24 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-12 pt-8 border-t border-beige-dark/40 flex flex-col sm:flex-row justify-between gap-4 text-xs text-ink-muted">
-          <span>© {new Date().getFullYear()} Женская консультация</span>
-          <span>Информационный сервис · не медучреждение · не заменяет очный приём врача</span>
+        <div className="mt-12 pt-8 border-t border-beige-dark/40 space-y-3 text-xs text-ink-muted">
+          <p>
+            Самозанятый: {operator.fullName}. ИНН {operator.inn}.
+          </p>
+          <p className="flex flex-col gap-2 sm:flex-row sm:gap-4">
+            <a href={`mailto:${operator.email}`} className="underline hover:text-ink">
+              Написать в поддержку: {operator.email}
+            </a>
+            {operator.phone ? (
+              <a href={`tel:${phoneHref}`} className="underline hover:text-ink">
+                {operator.phone}
+              </a>
+            ) : null}
+          </p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
+            <span>© {new Date().getFullYear()} Женская консультация</span>
+            <span>Информационный сервис · не медучреждение · не заменяет очный приём врача</span>
+          </div>
         </div>
       </div>
     </footer>
