@@ -6,6 +6,7 @@ const columns = [
   {
     title: "Сервис",
     links: [
+      { href: "/about", label: "О проекте" },
       { href: "/onboarding", label: "Выбрать статус" },
       { href: "/dashboard", label: "Личный кабинет" },
       { href: "/articles", label: "Статьи" },

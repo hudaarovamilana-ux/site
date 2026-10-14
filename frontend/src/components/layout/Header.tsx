@@ -11,6 +11,7 @@ import { AUTH_CHANGE_EVENT, getUserName, isUserLoggedIn } from "@/lib/user-stora
 
 const nav = [
   { href: "/", label: "Главная" },
+  { href: "/about", label: "О проекте" },
   { href: "/articles", label: "Статьи" },
   { href: "/faq", label: "Вопросы" },
   { href: "/pricing", label: "Тарифы" },
