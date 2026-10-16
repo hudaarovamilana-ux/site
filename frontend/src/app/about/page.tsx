@@ -43,7 +43,7 @@ export default function AboutPage() {
         ответственность за полноту. Между ними и стоит этот сервис.
       </p>
 
-      <h2 className="mt-14 text-2xl font-medium text-ink mb-4">Что уже можно пройти руками</h2>
+      <h2 className="mt-14 text-2xl font-medium text-ink mb-4">Что уже есть на сайте</h2>
       <ul className="space-y-3">
         {built.map((item) => (
           <li
