@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PRICE_MONTHLY, PRICE_PREGNANCY } from "@/lib/pricing";
 
 export const metadata: Metadata = {
   title: "О проекте — Женская консультация",
@@ -76,19 +75,6 @@ export default function AboutPage() {
         Для женщины это защита. Для проекта это право расти без лицензии на медицинскую
         деятельность. Внутри границы — скорость и порядок. За границей — очный врач, и
         сервис отправляет к нему, а не вместо него.
-      </p>
-
-      <h2 className="mt-14 text-2xl font-medium text-ink mb-4">Как это устроено как бизнес</h2>
-      <p className="text-ink-soft leading-relaxed mb-4">
-        Вход свободный: человек выбирает статус и видит, зачем возвращаться. Платный доступ
-        расширяет кабинет. Доставка мгновенная, склада и логистики нет. После оплаты
-        функции открываются в том же аккаунте.
-      </p>
-      <p className="text-ink-soft leading-relaxed">
-        Премиум — {PRICE_MONTHLY.toLocaleString("ru-RU")} ₽ за 30 дней. Сопровождение беременности —{" "}
-        {PRICE_PREGNANCY.toLocaleString("ru-RU")} ₽ за 270 дней, то есть весь срок одним решением, а не
-        девятью отдельными платежами,
-        о которых легко забыть. Чек небольшой. Повод вернуться повторяется каждую неделю.
       </p>
 
       <h2 className="mt-14 text-2xl font-medium text-ink mb-4">Почему это уже зрелый проект</h2>
