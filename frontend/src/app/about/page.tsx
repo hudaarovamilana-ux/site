@@ -28,10 +28,6 @@ export default function AboutPage() {
         лечение. Он перестаёт оставлять человека один на один с поисковой строкой до визита
         к врачу.
       </p>
-      <p className="text-base text-ink-soft leading-relaxed">
-        Это уже не слайд. Сайт работает, цена опубликована, договор можно прочитать до
-        оплаты. Проект оценивают по продукту, а не по обещанию его когда-нибудь собрать.
-      </p>
 
       <h2 className="mt-14 text-2xl font-medium text-ink mb-4">Где теряется решение</h2>
       <p className="text-ink-soft leading-relaxed mb-4">
