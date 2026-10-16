@@ -25,6 +25,23 @@ export function robokassaSign(parts: Array<string | number>): string {
   return createHash("md5").update(parts.join(":"), "utf8").digest("hex");
 }
 
+function receiptForSignature(description: string, amountValue: string): string {
+  const name = description.replace(/[«»"'']/g, "").replace(/\s+/g, " ").trim().slice(0, 128);
+  const receipt = JSON.stringify({
+    items: [
+      {
+        name,
+        quantity: 1,
+        sum: Number(amountValue),
+        tax: "none",
+        payment_method: "full_payment",
+        payment_object: "service",
+      },
+    ],
+  });
+  return encodeURIComponent(receipt);
+}
+
 export function buildRobokassaUrl(input: {
   invoiceNumber: number;
   amountValue: string;
@@ -34,10 +51,12 @@ export function buildRobokassaUrl(input: {
 }): string {
   const login = merchantLogin();
   const shp = `Shp_payment=${input.paymentId}`;
+  const receipt = receiptForSignature(input.description, input.amountValue);
   const signature = robokassaSign([
     login,
     input.amountValue,
     input.invoiceNumber,
+    receipt,
     password1(),
     shp,
   ]);
@@ -57,7 +76,7 @@ export function buildRobokassaUrl(input: {
     params.set("IsTest", "1");
   }
 
-  return `${PAY_URL}?${params.toString()}`;
+  return `${PAY_URL}?${params.toString()}&Receipt=${receipt}`;
 }
 
 export function isValidResultSignature(input: {
